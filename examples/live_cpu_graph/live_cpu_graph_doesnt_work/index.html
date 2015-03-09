@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="static/css/style.css" rel="stylesheet">
+   <script type="text/javascript" src="static/jquery-1.6.1.min.js"></script>
+   <script type="text/javascript" src="static/jquery.flot.js"></script>
+   <script type="text/javascript" src="static/socket.io.js"></script>
+
+   <!--Rickshaw demo links-->
+   <script type="text/javascript" src="static/mbostock-d3-3abb001/d3.js"></script>
+   <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+   <script src="static/rickshaw/rickshaw.js"></script>
+   <link type="text/css" rel="stylesheet" href="static/rickshaw/rickshaw.min.css">
+    <script>
+$(function() {
+
+WEB_SOCKET_SWF_LOCATION = "/static/WebSocketMain.swf";
+WEB_SOCKET_DEBUG = true;
+
+// Socket.io specific code
+var socket = io.connect('/cpu');
+
+// Setup plot
+var options = {
+    series: { shadowSize: 50 }, // drawing is faster without shadows
+    yaxis: { min: 0, max: 100 },
+    xaxis: { show: false }
+};
+
+// For formatting the plot data
+var enumerate = function(l) {
+    var res = [];
+    for (var i=0; i<l.length; ++i)
+        res.push([i, l[i]])
+    return res;
+};
+
+// Initial plot data is a bunch of 0's
+var d1 = [];
+for (var i=0; i<300; i++)
+    d1.push(0);
+
+// Create the inital graph
+var plot = $.plot($('#graph'), [{data: enumerate(d1)}], options);
+
+// Update the graph when we get new data from the server
+socket.on('cpu_data', function(data) {
+    console.log(data);
+    d1 = d1.slice(1);
+    d1.push(data.point);
+    plot.setData([{data: enumerate(d1)}]);
+    plot.draw();
+});
+
+});
+  </script>
+  </head>
+<body>
+  <h1>Live CPU graph</h1>
+  <div id="graph" style="width: 600px; height: 300px;"></div>
+  <div id="description">This graph shows the live CPU usage as reported
+  by /proc/stat on Linux-like systems.</div>
+
+      <div id="chart"></div>
+
+        <script>
+
+            var data = [ { x: 1910, y: 92228531 }, { x: 1920, y: 106021568 }, { x: 1930, y: 123202660 }, { x: 1940, y: 132165129 }, { x: 1950, y: 151325798 }, { x: 1960, y: 179323175 }, { x: 1970, y: 203211926 }, { x: 1980, y: 226545805 }, { x: 1990, y: 148722873 }, { x: 2000, y: 181421906 }, { x: 2010, y: 208745538 } ];
+
+            var streamingGraph = new Rickshaw.Graph( {
+                element: document.querySelector("#chart"),
+                width: 580,
+                height: 250,
+                series: [ {
+                    color: 'red',
+                    data: data
+                }]
+            });
+
+            streamingGraph.render();
+        </script>
+</body>
+</html>

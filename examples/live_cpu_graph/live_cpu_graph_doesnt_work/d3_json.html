@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Line Graph</title>
+
+    <!--CPU demo links-->
+    <link href="static/css/style.css" rel="stylesheet">
+    <script type="text/javascript" src="static/jquery-1.6.1.min.js"></script>
+    <script type="text/javascript" src="static/jquery.flot.js"></script>
+    <script type="text/javascript" src="static/socket.io.js"></script>
+
+    <!--Rickshaw demo links-->
+    <script type="text/javascript" src="static/d3/d3.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="static/rickshaw/rickshaw.js"></script>
+    <link type="text/css" rel="stylesheet" href="static/rickshaw/rickshaw.min.css">
+    <style>
+            .axis text {
+                font-family: sans-serif;
+                font-size: 11px;
+            }
+            .axis path,
+            .axis line {
+              fill: none;
+              stroke: #000;
+              shape-rendering: crispEdges;
+            }
+
+            .x.axis path {
+              display: none;
+            }
+
+            .line {
+              fill: none;
+              stroke: steelblue;
+              stroke-width: 2px;
+            }
+            #chart_container {
+                    position: relative;
+                    font-family: Arial, Helvetica, sans-serif;
+            }
+            #streamChart {
+                    position: relative;
+                    left: 40px;
+            }
+            #y_axis {
+                    position: absolute;
+                    top: 0;
+                    bottom: 0;
+                    width: 40px;
+            }
+            #y_axis1 {
+                    position: absolute;
+                    top: 0;
+                    bottom: 0;
+                    width: 40px;
+            }
+    </style>
+</head>
+<body>
+    <h1>D3 Line Graphs</h1>
+    <!--<div id="chart"></div><br>-->
+    <!--<div id="streamChart"></div><br>-->
+
+    <h2>Rickshaw streaming graph</h2>
+    <div id="chart_container">
+        <div id="y_axis"></div>
+        <div id="streamChart"></div>
+    </div>
+    <br>
+    <br>
+    <h2>Rickshaw static JSON graph</h2>
+    <div id="chart_container">
+        <div id="y_axis1"></div>
+        <div id="chart"></div>
+    </div>
+    <!--<h2>D3 JSON graph</h2>-->
+    <script>
+
+        $(function() {
+
+
+
+//      WEBSOCKET DEMO
+
+
+            WEB_SOCKET_SWF_LOCATION = "/static/WebSocketMain.swf";
+            WEB_SOCKET_DEBUG = true;
+
+            // Socket.io specific code
+            var socket = io.connect('/dashboard');
+            socket.emit('sendcpu', {});
+
+            // Setup plot
+//            var options = {
+//                series: {shadowSize: 0}, // drawing is faster without shadows
+//                yaxis: {min: 0, max: 100},
+//                xaxis: {show: false}
+//            };
+
+            // For formatting the plot data
+//            var enumerate = function (l) {
+//                var res = [];
+//                for (var i = 0; i < l.length; ++i)
+//                    res.push([i, l[i]])
+//                return res;
+//            };
+
+            // Initial plot data is a bunch of 0's
+//            var d1 = [];
+//            for (var i = 0; i < 300; i++)
+//                d1.push(0);
+
+            // Create the inital graph
+//            var plot = $.plot($('#graph'), [{data: enumerate(d1)}], options);
+
+            // Update the graph when we get new data from the server
+//            socket.on('cpu_data', function (data) {
+//                console.log(data);
+////                d1 = d1.slice(1);
+////                d1.push(data.point);
+////                plot.setData([{data: enumerate(d1)}]);
+////                plot.draw();
+//            });
+
+
+//      END WEBSOCKET DEMO
+
+
+//        RICKSHAW STREAMING GRAPH
+
+//        var tv = 200;
+
+        var streamingGraph = new Rickshaw.Graph( {
+            element: document.getElementById("streamChart"),
+            width: 1500,
+            height: 500,
+            renderer: 'line',
+//            interpolation: 'basis',
+            series: new Rickshaw.Series.FixedDuration([{ name: 'socket' }], undefined, {
+                timeInterval: 10,
+                maxDataPoints: 100,
+                timeBase: new Date().getTime() / 1000
+            })
+        } );
+
+        var x_axis = new Rickshaw.Graph.Axis.Time( { graph: streamingGraph } );
+
+        var y_axis = new Rickshaw.Graph.Axis.Y( {
+                graph: streamingGraph,
+                orientation: 'left',
+                tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+                element: document.getElementById('y_axis')
+            } );
+
+        streamingGraph.render();
+
+        socket.on('sm_data', function (data) {
+            console.log(data.data);
+            console.log(data.data[0]['idle']);
+            var streamData = { socket: data.data[0]['idle'] };
+            streamingGraph.series.addData(streamData);
+            streamingGraph.render();
+        });
+
+//        var i = 0;
+//        var iv = setInterval( function() {
+//
+//            var streamData = { one: Math.floor(Math.random() * 40) };
+//
+////            var randInt = Math.floor(Math.random()*100);
+////            streamData.two = (Math.sin(i++ / 40) + 4) * (randInt + 400);
+////            streamData.three = randInt + 300;
+//
+//            streamingGraph.series.addData(streamData);
+//            streamingGraph.render();
+//
+//        }, tv );
+
+//            RICKSHAW END STREAMING GRAPH
+
+        });  // END ONPAGELOAD JQUERY FUNCTION
+
+
+
+//
+//
+//
+//        var dataset = [];
+//
+//
+//        d3.json('static/cpu_json_sample.json', function (data) {
+//            console.log('get data function');
+//
+////        populate dataset array with json
+//            for (i = 0; i < data.results.length; i++) {
+//                //                coordinate = [ time, idle ]
+////                    var time = parseFloat(data.results[i].ts.slice(17, 23));
+//                var time = new Date(data.results[i].ts);
+////                    var time = i;
+//                var idle = data.results[i].idle;
+////                    var idle = i;
+//                coordinate = [time, idle];
+//                dataset.push(coordinate);
+//            }
+//
+////            plot graph based off json dataset (still part of callback)
+//            console.log('plotting');
+//            var w = 1500;
+//            var h = 500;
+//            var padding = 30;
+//            var xScale = d3.time.scale()
+//                    .domain([d3.min(dataset, function(d) { return d[0]; }), d3.max(dataset, function(d) { return d[0]; })])
+//                    .range([padding, w - padding]);
+//            var yScale = d3.scale.linear()
+//                     .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+//                     .range([h - padding, padding]);
+//            var rScale = d3.scale.linear()
+//                     .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+//                     .range([2, 5]);
+//            var svg = d3.select("body")
+//                        .append("svg")
+//                        .attr("width", w)
+//                        .attr("height", h);
+//            var xAxis = d3.svg.axis()
+//                  .scale(xScale)
+//                  .orient("bottom")
+//                  .ticks(5);
+//            var yAxis = d3.svg.axis()
+//                  .scale(yScale)
+//                  .orient("left")
+//                  .ticks(5);
+//            svg.selectAll("circle")
+//               .data(dataset)
+//               .enter()
+//               .append("circle")
+//                .attr("cx", function(d) {
+//                    return xScale(d[0]);
+//                })
+//               .attr("cy", function(d) {
+//                    return yScale(d[1]);
+//               })
+//               .attr("r", function(d) {
+//                    return 1;
+//                });
+//
+//            var line = d3.svg.line()
+//                .x(function(d) { return xScale(d[0]); })
+//                .y(function(d) { return yScale(d[1]); })
+//                .interpolate("basis");
+//
+//            svg.append("path")
+//                .datum(dataset)
+//                .attr("class", "line")
+//                .attr("d", line);
+//
+//            //Create X axis
+//            svg.append("g")
+//                .attr("class", "axis")
+//                .attr("transform", "translate(0," + (h - padding) + ")")
+//                .call(xAxis);
+//            //Create Y axis
+//            svg.append("g")
+//                .attr("class", "axis")
+//                .attr("transform", "translate(" + (padding) + ",0)")
+//                .call(yAxis);
+//
+//
+//            });
+
+// RICKSHAW JSON GRAPH
+
+        var data = [];
+        d3.json('static/cpu_json_sample.json', function (jsondata) {
+            console.log('rickshaw get data function');
+//            console.log(jsondata);
+//        populate dataset array with json
+            for (i = 0; i < jsondata.results.length; i++) {
+
+                //                coordinate = [ time, idle ]
+//                var time = parseFloat(data.results[i].ts.slice(17, 23));
+//                var time = new Date(jsondata.results[i].ts);
+                    var time = i;
+                var idle = jsondata.results[i].idle;
+//                    var idle = i;
+                coordinate = {x: time, y: idle};
+                data.push(coordinate);
+            }
+//        });
+
+            console.log('rickshaw graph')
+            var graph = new Rickshaw.Graph({
+                element: document.getElementById("chart"),
+                width: 1500,
+                height: 500,
+                renderer: 'line',
+                series: [{
+                    color: 'steelblue',
+                    data: data
+                }]
+            });
+            var x_axis1 = new Rickshaw.Graph.Axis.Time( { graph: graph } );
+
+            var y_axis1 = new Rickshaw.Graph.Axis.Y( {
+                    graph: graph,
+                    orientation: 'left',
+                    tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+                    element: document.getElementById('y_axis1')
+                } );
+
+            graph.render();
+
+        });
+
+////        RICKSHAW STREAMING GRAPH
+//        var tv = 200;
+//
+//        // instantiate our streamingGraph!
+//        var streamingGraph = new Rickshaw.Graph( {
+//            element: document.getElementById("streamChart"),
+//            width: 1500,
+//            height: 500,
+//            renderer: 'line',
+////            interpolation: 'step-after',
+//            series: new Rickshaw.Series.FixedDuration([{ name: 'one' }], undefined, {
+//                timeInterval: tv,
+//                maxDataPoints: 100,
+//                timeBase: new Date().getTime() / 1000
+//            })
+//        } );
+//
+//        var x_axis = new Rickshaw.Graph.Axis.Time( { graph: streamingGraph } );
+//
+//        var y_axis = new Rickshaw.Graph.Axis.Y( {
+//                graph: streamingGraph,
+//                orientation: 'left',
+//                tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+//                element: document.getElementById('y_axis')
+//            } );
+//
+//        streamingGraph.render();
+//
+//        // add some data every so often
+//
+//        var i = 0;
+//        var iv = setInterval( function() {
+//
+//            var streamData = { one: Math.floor(Math.random() * 40) };
+//
+////            var randInt = Math.floor(Math.random()*100);
+////            streamData.two = (Math.sin(i++ / 40) + 4) * (randInt + 400);
+////            streamData.three = randInt + 300;
+//
+//            streamingGraph.series.addData(streamData);
+//            streamingGraph.render();
+//
+//        }, tv );
+
+//        });
+
+    </script>
+</body>
+</html>
