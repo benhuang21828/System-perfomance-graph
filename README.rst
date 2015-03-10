@@ -3,7 +3,14 @@ Presentation
 
 .. image:: https://secure.travis-ci.org/abourget/gevent-socketio.png?branch=master
 
-``gevent-socketio`` is a Python implementation of the Socket.IO
+My personal experiment is at `System-perfomance-graph/examples/live_cpu_graph/live_cpu_graph/
+- the DC2 file initiates two threads:
+   1. The first thread, Data Collector, is always running and gets data from the system.
+   2. The second initiates when called upon by the client and emits the data it get from the Data Collector.
+   
+- The client calls the server socket and listens while rendering the information with a D3/RickShaw graph
+
+`gevent-socketio`` is a Python implementation of the Socket.IO
 protocol, developed originally for Node.js by LearnBoost and then
 ported to other languages.  Socket.IO enables real-time web
 communications between a browser and a server, using a WebSocket-like
