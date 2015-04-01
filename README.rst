@@ -3,7 +3,11 @@ Presentation
 
 .. image:: https://secure.travis-ci.org/abourget/gevent-socketio.png?branch=master
 
-My personal experiment is at `System-perfomance-graph/examples/live_cpu_graph/live_cpu_graph/
+My personal experiment is at 
+# https://github.com/benhuang21828/System-perfomance-graph/tree/master/examples/live_cpu_graph/live_cpu_graph
+
+or @ directory path  `System-perfomance-graph/examples/live_cpu_graph/live_cpu_graph/
+
 - the DC2.py file initiates two threads:
    1. The first thread, Data Collector, is always running and gets data from the system.
    2. The second initiates when called upon by the client and emits the data it get from the Data Collector.
